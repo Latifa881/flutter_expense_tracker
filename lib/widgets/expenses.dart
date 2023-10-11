@@ -33,12 +33,13 @@ class _ExpensesState extends State<Expenses> {
 
   final GlobalKey add = GlobalKey();
   final GlobalKey card = GlobalKey();
+  final GlobalKey chart = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-        (timeStamp) => ShowCaseWidget.of(context).startShowCase([add, card]));
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) =>
+        ShowCaseWidget.of(context).startShowCase([add, card, chart]));
   }
 
   @override
@@ -61,6 +62,7 @@ class _ExpensesState extends State<Expenses> {
     }
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Text(
           'Flutter Expense Tracker',
         ),
@@ -81,13 +83,22 @@ class _ExpensesState extends State<Expenses> {
       body: width < 600
           ? Column(
               children: [
-                Chart(expenses: _registeredExpenses),
+                Showcase(
+                    key: chart,
+                    description: 'View your expenses chart',
+                    child: Chart(expenses: _registeredExpenses)),
                 Expanded(child: mainContent)
               ],
             )
           : Row(
               children: [
-                Expanded(child: Chart(expenses: _registeredExpenses)),
+                Expanded(
+                  child: Showcase(
+                    key: chart,
+                    description: 'View your expenses chart here',
+                    child: Chart(expenses: _registeredExpenses),
+                  ),
+                ),
                 Expanded(child: mainContent)
               ],
             ),
