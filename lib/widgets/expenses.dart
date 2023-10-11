@@ -1,9 +1,8 @@
-import 'package:expenses_tracker/main.dart';
 import 'package:expenses_tracker/widgets/chart/chart.dart';
 import 'package:expenses_tracker/widgets/expenses_list/expenses_list.dart';
-import 'package:expenses_tracker/widgets/new_expense.dart';
+import 'package:expenses_tracker/widgets/new_expense/new_expense.dart';
 import 'package:flutter/material.dart';
-
+import 'package:showcaseview/showcaseview.dart';
 import '../models/expense.dart';
 
 //********************************************************************************//
@@ -32,16 +31,32 @@ class _ExpensesState extends State<Expenses> {
         category: Category.leisure)
   ];
 
+  final GlobalKey add = GlobalKey();
+  final GlobalKey card = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+        (timeStamp) => ShowCaseWidget.of(context).startShowCase([add, card]));
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget mainContent = const Center(
       child: Text('No expenses found. Start adding some!'),
     );
 
+    final width = MediaQuery.of(context).size.width;
+
     if (_registeredExpenses.isNotEmpty) {
-      mainContent = ExpensesList(
-        expenses: _registeredExpenses,
-        onRemoveExpense: _removeExpense,
+      mainContent = Showcase(
+        key: card,
+        description: 'Swip left and right to delete an expense',
+        child: ExpensesList(
+          expenses: _registeredExpenses,
+          onRemoveExpense: _removeExpense,
+        ),
       );
     }
     return Scaffold(
@@ -50,25 +65,39 @@ class _ExpensesState extends State<Expenses> {
           'Flutter Expense Tracker',
         ),
         actions: [
-          IconButton(
-            onPressed: _openAddExpenseOverlay,
-            icon: const Icon(Icons.add),
-            color: Colors.white,
+          Showcase(
+            key: add,
+            description: 'Add a new expense',
+            overlayOpacity: 0.5,
+            targetShapeBorder: const CircleBorder(),
+            child: IconButton(
+              onPressed: _openAddExpenseOverlay,
+              icon: const Icon(Icons.add),
+              color: Colors.white,
+            ),
           )
         ],
       ),
-      body: Column(
-        children: [
-          Chart(expenses: _registeredExpenses),
-          Expanded(child: mainContent)
-        ],
-      ),
+      body: width < 600
+          ? Column(
+              children: [
+                Chart(expenses: _registeredExpenses),
+                Expanded(child: mainContent)
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(child: Chart(expenses: _registeredExpenses)),
+                Expanded(child: mainContent)
+              ],
+            ),
     );
   }
 
   //---------------------------------Methods-----------------------------------//
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
+        useSafeArea: true,
         isScrollControlled: true,
         context: context,
         builder: (ctx) {
